@@ -7,11 +7,9 @@
 [![Size](https://img.shields.io/badge/release-14MB-999)](#)
 [![License](https://img.shields.io/badge/license-MIT-333)](#)
 
-<!-- GIF 占位：录屏完成后用 docs/demo.gif 替换
-![demo](docs/demo.gif)
--->
+<!-- 录屏演示已移除：项目已发布在 GitHub Repo 页面 -->
 
-**[⬇️ 下载桌面版](../../releases)** · **[🎬 30 秒录屏](#录屏演示)** · **[📖 项目文档](#项目结构)** · **[English](#english)**
+**[⬇️ 下载桌面版](../../releases)** · **[📖 项目文档](#项目结构)** · **[English](#english)**
 
 ---
 
@@ -33,7 +31,7 @@ COMPOUND.OS 是一个 **Windows 原生桌面应用**，帮你用「复利」的�
 | 打包体积 | 14 MB（含 Python 运行时 + WebView2 桥） |
 | 安装方式 | 解压即用 · 零注册表写入 · 卸载即删除 |
 
-> ⚠️ **macOS / Linux 用户**：可点 [在线 Preview](https://jiajinwu306.github.io/compound-os/) 看落地页和录屏，但桌面版仅 Windows。
+> ⚠️ **macOS / Linux 用户**：可点 [在线 Preview](https://jiajinwu306.github.io/compound-os/) 看落地页，但桌面版仅 Windows。
 
 ## 五大模块
 
@@ -44,14 +42,6 @@ COMPOUND.OS 是一个 **Windows 原生桌面应用**，帮你用「复利」的�
 | **今日作战** | 当日待办勾选，跨日自动顺延 | 任务列表 · 逾期高亮 |
 | **身体账户** | 一周健康事件可视化人体水位 | 周事件流 · 人体轮廓 + 水位动画 |
 | **爱意仪式** | 累计 20 次触发金色玫瑰动画 | 事件流 · 6 阶段仪式 · 记忆卡片 |
-
-## 录屏演示
-
-<!-- 录屏完成后打开下方注释
-![30 秒演示](docs/demo.gif)
--->
-
-> 30 秒录屏脚本见 [`docs/recording-script.md`](docs/recording-script.md)，照着录即可。
 
 ## 技术选型（Why no framework）
 
