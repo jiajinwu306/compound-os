@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# 日志与临时
+*.tmp
+*.log
+*.bak
+
+# PyInstaller 构建产物
+build/
+dist/
+
+# PyInstaller 准备阶段的渲染层副本（由 desktop/build.py 自动从根目录复制）
+desktop/renderer/
+
+# 编辑器与系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# 本地 scratch（验收测试脚本等）
+_test_*.js
+_test_*.py
