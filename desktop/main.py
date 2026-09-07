@@ -13,6 +13,7 @@ PyInstaller 打包后：
 """
 
 import os
+import pathlib
 import sys
 import webview
 
@@ -51,12 +52,22 @@ def main():
         print(f"[错误] 找不到渲染页面: {renderer_html}", file=sys.stderr)
         sys.exit(1)
 
+    # ⚠️ 不要给 file:// URL 追加 "?desktop=1" 之类的 query string。
+    # 实测（2026-09-07）：EdgeChromium/WebView2 会把 "?" 编码成 "%3F" 并当作文件名的一部分，
+    # 导致页面加载失败（location.href 变成 chrome-error://chromewebdata/），整个界面白屏。
+    # fragment("#") 方案同样不稳定（evaluate_js 返回 None）。
+    # 因此桌面端判定统一交给前端的 window.pywebview 检测——该方式已实测可靠。
+    try:
+        page_url = pathlib.Path(renderer_html).resolve().as_uri()
+    except Exception:
+        page_url = renderer_html
+
     api = Api()
 
     # PyWebView 默认会注入 window.pywebview，JS 通过 window.pywebview.api 调用 Python
     window = webview.create_window(
         title=APP_TITLE,
-        url=renderer_html,
+        url=page_url,
         js_api=api,
         width=1400,
         height=900,
@@ -64,9 +75,38 @@ def main():
         text_select=True,
     )
 
+    # 关闭窗口前强制前端落盘一次，避免最后一次改动因异步写入来不及而丢失
+    def on_closing():
+        try:
+            window.evaluate_js("if (typeof flushState === 'function') { flushState(); }")
+        except Exception:
+            pass
+
+    try:
+        window.events.closing += on_closing
+    except Exception:
+        pass
+
+    # ⚠️ 关键修复（数据丢失 bug）
+    # PyWebView 的 private_mode 默认为 True（隐私模式），该模式下 WebView 的
+    # localStorage 不落盘，关闭窗口即被清空 —— 这是「重开就重置」的直接原因之一。
+    # 这里显式关闭隐私模式，并把缓存目录固定到 %LOCALAPPDATA%\CompoundOS\WebViewCache，
+    # 保证 localStorage 兜底通道同样可持久化。
+    storage_path = os.path.join(
+        os.environ.get("LOCALAPPDATA", os.path.expanduser("~")),
+        "CompoundOS", "WebViewCache",
+    )
+    os.makedirs(storage_path, exist_ok=True)
+
     with open(log_path, "a", encoding="utf-8") as f:
         f.write("[start] calling webview.start()\n")
-    webview.start(debug=False)
+    try:
+        webview.start(debug=False, private_mode=False, storage_path=storage_path)
+    except TypeError:
+        # 部分 pywebview 版本不支持 storage_path 参数，降级为仅关闭隐私模式
+        with open(log_path, "a", encoding="utf-8") as f:
+            f.write("[warn] storage_path unsupported, fallback\n")
+        webview.start(debug=False, private_mode=False)
     with open(log_path, "a", encoding="utf-8") as f:
         f.write("[exit] webview.start() returned\n")
 

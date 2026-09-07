@@ -1035,7 +1035,43 @@ function confirmModal(title, msg, okText, danger){
 
 /* ---------------- 存储层 ---------------- */
 const STORAGE_KEY = 'wb_compound_os_v1';
-const IS_PYWEBVIEW = (typeof window !== 'undefined') && !!(window.pywebview);
+
+/* ⚠️ 关键修复（数据丢失 bug）
+ * window.pywebview 由桌面宿主在「页面加载完成后」异步注入，本脚本同步执行时
+ * 它还不存在。原实现用 const 在此处一次性判定，结果恒为 false —— 桌面端因此
+ * 全程误走 localStorage 分支；而 WebView 处于隐私模式时 localStorage 不落盘，
+ * 关闭窗口即被清空，表现为「重开就重置、数据全丢」。
+ * 修复：改为 let + 运行时轮询检测，在 DOMContentLoaded 阶段确认宿主是否就绪。 */
+let IS_PYWEBVIEW = false;
+
+/* 更可靠的宿主判定：桌面端启动时宿主会在 URL 上带 ?desktop=1。
+ * URL 在页面加载时即确定，不像 window.pywebview 那样依赖异步注入时机。 */
+let IS_DESKTOP_URL = false;
+
+function initDesktopFlag(){
+  try {
+    IS_DESKTOP_URL = (new URLSearchParams(location.search).get('desktop') === '1');
+  } catch (e) { IS_DESKTOP_URL = false; }
+}
+
+function detectPyWebView(){
+  try { return !!(window.pywebview && window.pywebview.api); } catch (e) { return false; }
+}
+
+/** 等待桌面宿主注入 window.pywebview；浏览器模式会在超时后返回 false。 */
+function waitForPyWebView(timeoutMs){
+  return new Promise((resolve) => {
+    if (detectPyWebView()) { IS_PYWEBVIEW = true; resolve(true); return; }
+    const started = Date.now();
+    const timer = setInterval(() => {
+      if (detectPyWebView()) {
+        clearInterval(timer); IS_PYWEBVIEW = true; resolve(true);
+      } else if (Date.now() - started > timeoutMs) {
+        clearInterval(timer); IS_PYWEBVIEW = false; resolve(false);
+      }
+    }, 50);
+  });
+}
 
 /* buildCacheNews() 已废弃：资讯数据完全来自真实抓取脚本 fetch_news.py
  * 启动时通过 loadNewsBundle() 从 ./news.json 拉取；不再硬编码任何虚构资讯 */
@@ -1115,6 +1151,13 @@ async function initPyWebViewState(){
       const parsed = JSON.parse(raw);
       if (parsed && parsed.version === 1) { state = parsed; return; }
     }
+    /* Python 端无数据（首次启动 / 文件被清）时，尝试用 localStorage 兜底恢复。
+     * 这能救回「此前因隐私模式只写进了 localStorage」的存量数据。 */
+    const ls = localStorage.getItem(STORAGE_KEY);
+    if (ls) {
+      const p2 = JSON.parse(ls);
+      if (p2 && p2.version === 1) { state = p2; return; }
+    }
   } catch (e) {
     try { window.pywebview.api.log('initPyWebViewState error: ' + (e.message || e)); } catch (e2) {}
   }
@@ -1123,25 +1166,34 @@ async function initPyWebViewState(){
 }
 
 function saveState(){
+  if (!state) return;
+  const payload = JSON.stringify(state);
+  /* 双写保险：桌面端主写 Python 文件（%LOCALAPPDATA%\CompoundOS\workspace.json），
+   * 同时无论如何都写一份 localStorage 兜底，避免任一通道失效就全量丢失。 */
   if (IS_PYWEBVIEW){
     try {
-      window.pywebview.api.saveState(JSON.stringify(state)).catch(() => {});
+      window.pywebview.api.saveState(payload).catch(() => {});
     } catch (e) { toast('状态保存失败：' + e.message, 'err'); }
-  } else {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
-    catch (e) { toast('本地存储写入失败：' + e.message, 'err'); }
   }
+  try { localStorage.setItem(STORAGE_KEY, payload); }
+  catch (e) { if (!IS_PYWEBVIEW) toast('本地存储写入失败：' + e.message, 'err'); }
   // 同步资讯缓存到独立 key（避免大 JSON 污染主 state 的体积上限）
   if (state.news && Array.isArray(state.news.items) && state.news.items.length){
     if (IS_PYWEBVIEW){
       try { window.pywebview.api.saveNewsCache(JSON.stringify(state.news)).catch(() => {}); }
       catch (e) {}
-    } else {
-      try { localStorage.setItem('wb_compound_os_news_cache', JSON.stringify(state.news)); }
-      catch (e) { /* ignore quota */ }
     }
+    try { localStorage.setItem('wb_compound_os_news_cache', JSON.stringify(state.news)); }
+    catch (e) { /* ignore quota */ }
   }
 }
+
+/** 关闭前强制落盘：窗口 closing / beforeunload 时调用，确保最后一次改动不丢。 */
+function flushState(){
+  if (!state) return;
+  saveState();
+}
+window.addEventListener('beforeunload', () => { flushState(); });
 
 /* ---------------- 计算层 ---------------- */
 function normalizeGrowth(){
@@ -2156,9 +2208,12 @@ function tickCountdown(){
 
 /* ---------------- 初始化 ---------------- */
 document.addEventListener('DOMContentLoaded', async () => {
+  initDesktopFlag();
+  // 桌面端（URL 带 desktop=1）给足 8 秒等待宿主注入；纯浏览器模式 3 秒快速超时降级
+  await waitForPyWebView(IS_DESKTOP_URL ? 8000 : 3000);
   // 桌面端（PyWebView）状态由 Python 宿主加载；浏览器端继续使用 localStorage
   if (IS_PYWEBVIEW){
-    try { window.pywebview.api.log('DOMContentLoaded: pywebview detected'); } catch (e) {}
+    try { window.pywebview.api.log('DOMContentLoaded: pywebview ready, desktopUrl=' + IS_DESKTOP_URL); } catch (e) {}
     await initPyWebViewState();
     try { window.pywebview.api.log('initPyWebViewState done, state version=' + (state ? state.version : 'null')); } catch (e) {}
   } else {

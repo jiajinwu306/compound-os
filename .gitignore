@@ -10,7 +10,10 @@ __pycache__/
 
 # PyInstaller 构建产物
 build/
+build2/
 dist/
+dist_v2/
+dist_backup_working/
 
 # PyInstaller 准备阶段的渲染层副本（由 desktop/build.py 自动从根目录复制）
 desktop/renderer/
