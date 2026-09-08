@@ -50,12 +50,16 @@ def _atomic_write_json(path: Path, text: str):
 
 
 def _fallback_news_path():
-    """获取打包时内嵌的默认 news.json 路径（支持 PyInstaller 单目录模式）。"""
+    """获取打包时内嵌的默认 news.json 路径。
+    修复（2026-09-08）：PyInstaller --onedir 下 build.py 用
+    `--add-data=RENDERER_DIR;renderer` 把整目录塞到 renderer/ 子目录，
+    news.json 实际位于 <MEIPASS>/renderer/news.json，不是 <MEIPASS>/news.json。
+    这里按 frozen / dev 两种模式分别返回正确路径。"""
     if getattr(sys, "frozen", False):
-        base = Path(sys._MEIPASS)
-    else:
-        base = Path(__file__).resolve().parent.parent
-    return base / "news.json"
+        # PyInstaller --onedir 模式：<exe_dir>/_internal/renderer/news.json
+        return Path(sys._MEIPASS) / "renderer" / "news.json"
+    # 开发模式：项目根/news.json
+    return Path(__file__).resolve().parent.parent / "news.json"
 
 
 class Api:
