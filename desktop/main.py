@@ -75,17 +75,12 @@ def main():
         text_select=True,
     )
 
-    # 关闭窗口前强制前端落盘一次，避免最后一次改动因异步写入来不及而丢失
-    def on_closing():
-        try:
-            window.evaluate_js("if (typeof flushState === 'function') { flushState(); }")
-        except Exception:
-            pass
-
-    try:
-        window.events.closing += on_closing
-    except Exception:
-        pass
+    # ⚠️ 关闭时落盘交给前端 beforeunload（index.html 已监听并调用 flushState）。
+    # 曾在此用 window.events.closing += on_closing 同步调 window.evaluate_js()，
+    # 实测（2026-09-08）会导致点关闭按钮时窗口卡死「未响应」：
+    # evaluate_js 是同步调用，等待 JS 返回结果，但窗口已进入关闭流程、JS 执行
+    # 环境被冻结，结果永远回不来 → Python 主线程阻塞 → 程序无法关闭。
+    # 因此不再在 Python 侧触发 JS，仅保留前端的 beforeunload 落盘逻辑。
 
     # ⚠️ 关键修复（数据丢失 bug）
     # PyWebView 的 private_mode 默认为 True（隐私模式），该模式下 WebView 的
