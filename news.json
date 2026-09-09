@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-09-08T02:00:07Z",
+  "generated_at": "2026-09-09T02:00:12Z",
   "count": 10,
   "items": [
     {
@@ -16,7 +16,7 @@
       "tags": [],
       "translated": false,
       "score": 17,
-      "fetched_at": "2026-09-08T02:00:07Z"
+      "fetched_at": "2026-09-09T02:00:12Z"
     },
     {
       "original_title": "Set up OpenAI ChatGPT Codex with LiteLLM on Amazon ECS and Amazon Bedrock",
@@ -31,22 +31,22 @@
       "tags": [],
       "translated": false,
       "score": 17,
-      "fetched_at": "2026-09-08T02:00:07Z"
+      "fetched_at": "2026-09-09T02:00:12Z"
     },
     {
-      "original_title": "Accessing OpenAI models on Amazon Bedrock from Australia with global cross-Region inference",
-      "title": "Accessing OpenAI models on Amazon Bedrock from Australia with global cross-Region inference",
-      "summary": "Australian teams can now access OpenAI GPT-5.6 Sol, Terra, and Luna models on Amazon Bedrock with global cross-Region inference from the Asia Pacific (Sydney) and Asia Pacific (Melbourne) Regions. This post shows how to invoke the models, use prompt caching, set up Codex with OpenID Connect authentication, and monitor usage with Amazon CloudWatch.",
-      "original_summary": "Australian teams can now access OpenAI GPT-5.6 Sol, Terra, and Luna models on Amazon Bedrock with global cross-Region inference from the Asia Pacific (Sydney) and Asia Pacific (Melbourne) Regions. This post shows how to invoke the models, use prompt caching, set up Codex with OpenID Connect authentication, and monitor usage with Amazon CloudWatch.",
+      "original_title": "Benchmarking small LLM inference on SageMaker AI: G7 vs G5 and G6",
+      "title": "Benchmarking small LLM inference on SageMaker AI: G7 vs G5 and G6",
+      "summary": "Benchmark two 30B Mixture-of-Experts models, Qwen3-Coder-30B and NVIDIA Nemotron-3-Nano-30B, across G5, G6, G6e, and G7 GPU instances on Amazon SageMaker AI. Compare throughput, latency, and cost-per-token, and see how G7's NVIDIA Blackwell GPUs deliver measurable price-performance gains for real-time LLM inference.",
+      "original_summary": "Benchmark two 30B Mixture-of-Experts models, Qwen3-Coder-30B and NVIDIA Nemotron-3-Nano-30B, across G5, G6, G6e, and G7 GPU instances on Amazon SageMaker AI. Compare throughput, latency, and cost-per-token, and see how G7's NVIDIA Blackwell GPUs deliver measurable price-performance gains for real-time LLM inference.",
       "source": "AWS ML Blog",
       "source_url": "https://aws.amazon.com/blogs/machine-learning/",
-      "date": "2026-09-02",
-      "url": "https://aws.amazon.com/blogs/machine-learning/accessing-openai-gpt-5-6-models-on-amazon-bedrock-from-australia-with-global-cross-region-inference/",
+      "date": "2026-09-08",
+      "url": "https://aws.amazon.com/blogs/machine-learning/benchmarking-small-llm-inference-on-sagemaker-ai-g7-vs-g5-and-g6/",
       "image": null,
       "tags": [],
       "translated": false,
-      "score": 17,
-      "fetched_at": "2026-09-08T02:00:07Z"
+      "score": 16,
+      "fetched_at": "2026-09-09T02:00:12Z"
     },
     {
       "original_title": "GitHub Copilot weekly releases — August 31",
@@ -61,7 +61,7 @@
       "tags": [],
       "translated": false,
       "score": 15,
-      "fetched_at": "2026-09-08T02:00:05Z"
+      "fetched_at": "2026-09-09T02:00:05Z"
     },
     {
       "original_title": "Deploy a multimodal WhatsApp ordering assistant with Amazon Bedrock AgentCore",
@@ -76,7 +76,7 @@
       "tags": [],
       "translated": false,
       "score": 15,
-      "fetched_at": "2026-09-08T02:00:07Z"
+      "fetched_at": "2026-09-09T02:00:12Z"
     },
     {
       "original_title": "GPT-6 Astra is generally available in GitHub Copilot",
@@ -91,7 +91,7 @@
       "tags": [],
       "translated": false,
       "score": 14,
-      "fetched_at": "2026-09-08T02:00:05Z"
+      "fetched_at": "2026-09-09T02:00:05Z"
     },
     {
       "original_title": "Upcoming deprecation of selected GitHub Copilot models",
@@ -106,7 +106,7 @@
       "tags": [],
       "translated": false,
       "score": 14,
-      "fetched_at": "2026-09-08T02:00:05Z"
+      "fetched_at": "2026-09-09T02:00:05Z"
     },
     {
       "original_title": "Polimill builds Japan's next-generation public AI infrastructure",
@@ -121,37 +121,37 @@
       "tags": [],
       "translated": false,
       "score": 14,
-      "fetched_at": "2026-09-08T02:00:04Z"
+      "fetched_at": "2026-09-09T02:00:04Z"
     },
     {
-      "original_title": "New API endpoint provides privacy-safe star history data",
-      "title": "New API endpoint provides privacy-safe star history data",
-      "summary": "Track repository star growth over time with the new star history REST API endpoint without exposing stargazer identities. Earlier this year, stargazer listing endpoints were restricted to admins and collaborators&#8230; The post New API endpoint provides privacy-safe star history data appeared first on The GitHub Blog .",
-      "original_summary": "Track repository star growth over time with the new star history REST API endpoint without exposing stargazer identities. Earlier this year, stargazer listing endpoints were restricted to admins and collaborators&#8230; The post New API endpoint provides privacy-safe star history data appeared first on The GitHub Blog .",
-      "source": "GitHub Changelog",
-      "source_url": "https://github.blog/changelog/",
-      "date": "2026-09-04",
-      "url": "https://github.blog/changelog/2026-09-04-new-api-endpoint-provides-privacy-safe-star-history-data",
-      "image": null,
-      "tags": [],
-      "translated": false,
-      "score": 13,
-      "fetched_at": "2026-09-08T02:00:05Z"
-    },
-    {
-      "original_title": "Safety overview: GPT-6 Astra",
-      "title": "Safety overview: GPT-6 Astra",
-      "summary": "GPT-6 Astra is our most capable broadly deployed model and our first to reach the Critical level of cybersecurity capability under our Preparedness Framework.",
-      "original_summary": "GPT-6 Astra is our most capable broadly deployed model and our first to reach the Critical level of cybersecurity capability under our Preparedness Framework.",
+      "original_title": "How GPT-5.6 Sol helps run quantum computing experiments",
+      "title": "How GPT-5.6 Sol helps run quantum computing experiments",
+      "summary": "See how an MIT researcher uses GPT-5.6 Sol with Codex to autonomously run quantum computing experiments, analyze results, and calibrate qubits.",
+      "original_summary": "See how an MIT researcher uses GPT-5.6 Sol with Codex to autonomously run quantum computing experiments, analyze results, and calibrate qubits.",
       "source": "OpenAI News",
       "source_url": "https://openai.com/news/",
-      "date": "2026-09-03",
-      "url": "https://openai.com/index/safety-overview-gpt-6-astra",
+      "date": "2026-09-08",
+      "url": "https://openai.com/index/codex-quantum-computing-experiments",
       "image": null,
       "tags": [],
       "translated": false,
       "score": 13,
-      "fetched_at": "2026-09-08T02:00:04Z"
+      "fetched_at": "2026-09-09T02:00:04Z"
+    },
+    {
+      "original_title": "Introducing ChatGPT Images 2.5",
+      "title": "Introducing ChatGPT Images 2.5",
+      "summary": "ChatGPT Images 2.5 helps turn your ideas, sketches, and reference photos into more personalized, polished images that better reflect your ideas.",
+      "original_summary": "ChatGPT Images 2.5 helps turn your ideas, sketches, and reference photos into more personalized, polished images that better reflect your ideas.",
+      "source": "OpenAI News",
+      "source_url": "https://openai.com/news/",
+      "date": "2026-09-08",
+      "url": "https://openai.com/index/introducing-chatgpt-images-2-5",
+      "image": null,
+      "tags": [],
+      "translated": false,
+      "score": 13,
+      "fetched_at": "2026-09-09T02:00:04Z"
     }
   ]
 }
