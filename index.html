@@ -218,6 +218,12 @@ h2.page-title{font-size:36px;font-weight:700;letter-spacing:.01em;margin-bottom:
 .news-src{color:var(--mint);font-weight:600}
 .news-link{margin-left:auto;color:var(--text3);text-decoration:none;display:inline-flex;align-items:center;gap:4px;transition:color .2s}
 .news-link:hover{color:var(--mint2)}
+/* 新鲜度徽章：根据文章发布日期距今天数着色 */
+.fresh-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:10px;font-size:12px;font-weight:600;letter-spacing:.02em}
+.fresh-today{background:rgba(61,220,151,.14);border:1px solid rgba(61,220,151,.4);color:var(--mint2)}
+.fresh-recent{background:rgba(77,171,247,.14);border:1px solid rgba(77,171,247,.4);color:#5cb3ff}
+.fresh-week{background:rgba(230,180,92,.12);border:1px solid rgba(230,180,92,.35);color:var(--amber)}
+.fresh-old{background:rgba(150,160,170,.12);border:1px solid rgba(150,160,170,.3);color:var(--text3)}
 
 /* ========== B. 长期主线 ========== */
 .milestones{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:28px}
@@ -1340,6 +1346,19 @@ function sourceCoverSvg(source){
  * - image 字段存在时优先显示真实图片
  * - 卡片点击打开原文
  */
+function freshnessOf(dateStr){
+  if (!dateStr) return { cls: 'fresh-old', label: '日期未知' };
+  const d = new Date(dateStr + 'T00:00:00');
+  if (isNaN(d.getTime())) return { cls: 'fresh-old', label: '日期未知' };
+  const now = new Date();
+  const days = Math.floor((now - d) / 86400000);
+  if (days < 0) return { cls: 'fresh-today', label: '🔥 即将发布' };
+  if (days === 0) return { cls: 'fresh-today', label: '🆕 今日新' };
+  if (days <= 3) return { cls: 'fresh-recent', label: '📌 近 3 日' };
+  if (days <= 7) return { cls: 'fresh-week', label: '📅 本周' };
+  return { cls: 'fresh-old', label: '🗓️ ' + dateStr };
+}
+
 function renderRadar(){
   const n = state.news || {};
   const items = Array.isArray(n.items) ? n.items : [];
@@ -1352,19 +1371,19 @@ function renderRadar(){
     badge.className = 'badge badge-cache';
     badge.innerHTML = '<span class="bdot"></span>缓存';
   }
-  // 抓取时间：显示"上次成功拉取 + 缓存生成时间"
+  // 抓取时间：优先显示抓取脚本真正生成数据的时间（generatedAt），
+  // 让"这是今天抓的还是 N 天前的"一眼可见。
   const fetchedAt = n.fetchedAt ? new Date(n.fetchedAt).toLocaleString('zh-CN') : '';
   const generatedAt = n.generatedAt ? new Date(n.generatedAt).toLocaleString('zh-CN') : '';
   let meta = '';
-  if (n.mode === 'live' && fetchedAt) meta = '上次成功刷新：' + fetchedAt + ' · 每日 10:00 自动更新';
-  else if (generatedAt) meta = '本地缓存生成于：' + generatedAt + ' · 点击「立即刷新」读取最新缓存';
-  else if (items.length) meta = '缓存未记录生成时间 · 每日 10:00 自动更新';
+  if (generatedAt) meta = '数据生成于：' + generatedAt + ' · 每日 10:00 自动抓取';
+  else if (n.mode === 'live' && fetchedAt) meta = '上次成功刷新：' + fetchedAt + ' · 每日 10:00 自动更新';
+  else if (items.length) meta = '本地缓存 · 每日 10:00 自动更新';
   $('newsFetchedAt').textContent = meta;
   errEl.textContent = n.lastError ? ('· 刷新失败：' + n.lastError) : '';
   errEl.style.display = n.lastError ? '' : 'none';
 
-  const list = $('newsList');
-  if (!items.length){
+  const list = $('newsList');  if (!items.length){
     list.innerHTML = '<div class="empty" style="grid-column:1/-1">' +
       '<b>暂无 AI 资讯数据</b><br>' +
       '1) 点击右上「立即刷新」会从同目录 news.json 拉取最新已抓取的内容<br>' +
@@ -1374,6 +1393,8 @@ function renderRadar(){
   }
   list.innerHTML = items.slice(0, 10).map(it => {
     const translated = it.translated;
+    // 新鲜度：根据文章「发布日期」it.date 距今天数着色，让卡片一眼可辨新旧
+    const fr = freshnessOf(it.date);
     const showTitle = translated ? it.title : it.original_title;
     const showSummary = translated ? it.summary : (it.original_summary || it.summary || '');
     const cover = it.image
@@ -1387,7 +1408,7 @@ function renderRadar(){
       '<div class="news-body">' +
       '<div class="news-title"><a href="' + escapeHtml(it.url) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(showTitle) + '</a></div>' +
       '<div class="news-summary">' + escapeHtml(showSummary) + '</div>' +
-      '<div class="news-meta"><span class="news-src">' + transTag + ' ' + escapeHtml(it.source) + '</span><span>' + escapeHtml(it.date || '') + '</span>' +
+      '<div class="news-meta"><span class="fresh-badge ' + fr.cls + '">' + fr.label + '</span><span class="news-src">' + transTag + ' ' + escapeHtml(it.source) + '</span><span>' + escapeHtml(it.date || '') + '</span>' +
       '<a class="news-link" href="' + escapeHtml(it.url) + '" target="_blank" rel="noopener noreferrer">原文 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M9 7h8v8"/></svg></a></div>' +
       '</div></article>';
   }).join('');
