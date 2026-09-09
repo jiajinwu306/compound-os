@@ -86,8 +86,17 @@ class Api:
 
     def loadNews(self):
         _ensure_data_dir()
-        # 优先读用户数据目录（可写入缓存），不存在则回退到打包默认数据
-        for candidate in (NEWS_FILE, _fallback_news_path()):
+        # 候选顺序（2026-09-09 调整）：
+        # 1) 用户数据目录缓存（桌面端「立即刷新」后落盘的位置）
+        # 2) 项目根 news.json（开发者手动跑 fetch_news.py 后那份最新数据；
+        #    让点「立即刷新」能立刻读到，不必等重新打开或拷贝到缓存）
+        # 3) 打包内嵌默认数据（<MEIPASS>/renderer/news.json）
+        project_news = None
+        if not getattr(sys, "frozen", False):
+            project_news = Path(__file__).resolve().parent.parent / "news.json"
+        for candidate in (NEWS_FILE, project_news, _fallback_news_path()):
+            if candidate is None:
+                continue
             if candidate.exists():
                 try:
                     with open(candidate, "r", encoding="utf-8") as f:
