@@ -39,6 +39,7 @@ import json
 import os
 import re
 import sys
+import tempfile
 import time
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone
@@ -409,8 +410,57 @@ def write_news_json(items: List[NewsItem], out_path: Path) -> None:
         "count": len(items),
         "items": [asdict(it) for it in items],
     }
-    out_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    text = json.dumps(payload, ensure_ascii=False, indent=2)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(text, encoding="utf-8")
     print(f"[ok] 已写入 {out_path} · {len(items)} 条")
+
+
+def _localappdata_news_path() -> Path:
+    """返回桌面端缓存 news.json 路径，与 desktop/api.py 的 NEWS_FILE 完全一致：
+    %LOCALAPPDATA%/CompoundOS/news.json（macOS/Linux 兜底到 ~/.CompoundOS）。"""
+    base = os.environ.get("LOCALAPPDATA")
+    if not base:
+        base = os.path.expanduser("~")
+    return Path(base) / "CompoundOS" / "news.json"
+
+
+def sync_to_desktop_cache(items: List[NewsItem]) -> None:
+    """双写：把抓取结果额外复制到桌面端缓存目录，让 COMPOUND.OS 桌面应用
+    在下一次打开/点「立即刷新」时读到当天数据。
+
+    根因（2026-09-09）：
+    旧流程只写项目根 news.json，桌面端 loadNews() 优先读
+    %LOCALAPPDATA%/CompoundOS/news.json，二者从不自动同步，导致桌面端
+    永远停在首次安装时拷贝的历史快照。这里补上管道断了的那一环。"""
+    try:
+        # 复用 write_news_json 生成同一份 payload 文本，保证两边完全一致
+        payload = {
+            "version": 1,
+            "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "count": len(items),
+            "items": [asdict(it) for it in items],
+        }
+        text = json.dumps(payload, ensure_ascii=False, indent=2)
+        dst = _localappdata_news_path()
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        tmp_fd, tmp_path = tempfile.mkstemp(dir=dst.parent, prefix="news.tmp")
+        try:
+            with os.fdopen(tmp_fd, "w", encoding="utf-8") as f:
+                f.write(text)
+                f.flush()
+                os.fsync(f.fileno())
+            os.replace(tmp_path, dst)
+            print(f"[ok] 已同步到桌面端缓存 {dst} · {len(items)} 条")
+        except Exception:
+            try:
+                os.unlink(tmp_path)
+            except Exception:
+                pass
+            raise
+    except Exception as e:
+        # 桌面缓存同步失败不应阻断主流程（项目根已写成功）
+        print(f"  [warn] 同步桌面端缓存失败（不影响项目根 news.json）: {type(e).__name__}: {str(e)[:80]}", file=sys.stderr)
 
 
 def main() -> int:
@@ -422,6 +472,8 @@ def main() -> int:
         print("[FAIL] 所有源都失败，未生成任何条目", file=sys.stderr)
         return 1
     write_news_json(items, Path(__file__).parent / "news.json")
+    # 双写：同步到桌面端缓存目录，桌面应用下次打开/刷新即可读到当天数据
+    sync_to_desktop_cache(items)
     print("[done]")
     return 0
 
